@@ -236,18 +236,22 @@ function renderCharts(stats) {
     options: { responsive: true, plugins: { legend: { display: false } } }
   });
 
-  const contLabels = Object.keys(stats.continentCounts);
-  const contData = Object.values(stats.continentCounts);
+  // Continent chart
+let contLabels = Object.keys(stats.continentCounts).filter(k => k && k.trim() !== "");
+let contData = contLabels.map(k => stats.continentCounts[k]);
 
-  if (continentChart) continentChart.destroy();
-  continentChart = new Chart(document.getElementById('continentChart'), {
-    type: 'bar',
-    data: {
-      labels: contLabels,
-      datasets: [{ data: contData, backgroundColor: ['#4f6bff','#ff7b7b','#ffd15c','#6be39e','#b57bff','#ff9ad5'] }]
-    },
-    options: { responsive: true }
-  });
+if (continentChart) continentChart.destroy();
+continentChart = new Chart(document.getElementById('continentChart'), {
+  type: 'bar',
+  data: {
+    labels: contLabels,
+    datasets: [{
+      data: contData,
+      backgroundColor: ['#4f6bff','#ff7b7b','#ffd15c','#6be39e','#b57bff','#ff9ad5']
+    }]
+  },
+  options: { responsive: true }
+});
 
   const modeLabels = Object.keys(stats.modeCounts);
   const modeData = Object.values(stats.modeCounts);
