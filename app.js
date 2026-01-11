@@ -1,10 +1,12 @@
-// Egyszerű ADIF parser: minden <eor> egy QSO
+// =========================
+// 1. ADIF PARSER
+// =========================
+
 function parseAdif(text) {
   const records = text.split(/<eor>/i).map(r => r.trim()).filter(Boolean);
   return records.map(parseAdifRecord).filter(q => q.call);
 }
 
-// Egy rekord feldarabolása mezőkre
 function parseAdifRecord(block) {
   const qso = {};
   const regex = /<([^:>]+)(?::(\d+))?(?::([A-Z]))?[^>]*>([^<]*)/gi;
@@ -17,22 +19,10 @@ function parseAdifRecord(block) {
   return qso;
 }
 
-// DXCC -> kontinens (magyar) – már csak fallback, elsősorban cty.json-ből dolgozunk
-function dxccToContinent(dxcc) {
-  const n = parseInt(dxcc, 10);
-  if (isNaN(n)) return 'Ismeretlen';
+// =========================
+// 2. KOORDINÁTA FÜGGVÉNYEK
+// =========================
 
-  if ([291, 1, 6, 67, 94, 50].includes(n)) return 'Észak-Amerika';
-  if ([108, 116, 88, 90].includes(n)) return 'Dél-Amerika';
-  if ([239, 248, 263, 230, 281, 223, 294, 272, 296, 206, 501].includes(n)) return 'Európa';
-  if ([327, 339, 324, 299, 375, 304, 305].includes(n)) return 'Ázsia';
-  if ([462].includes(n)) return 'Afrika';
-  if ([375, 327].includes(n)) return 'Óceánia';
-
-  return 'Ismeretlen';
-}
-
-// Maidenhead lokátor -> lat/lon
 function maidenheadToLatLon(grid) {
   if (!grid || grid.length < 4) return null;
 
@@ -52,7 +42,6 @@ function maidenheadToLatLon(grid) {
   return { lat, lon };
 }
 
-// LAT/LON (decimális) -> Maidenhead lokátor
 function latLonToMaidenhead(lat, lon) {
   lon += 180;
   lat += 90;
@@ -76,7 +65,6 @@ function latLonToMaidenhead(lat, lon) {
        + String.fromCharCode(A + subsquareLat);
 }
 
-// ADIF lat/lon -> decimális
 function adifCoordToDecimal(str) {
   const m = /^([NSWE])(\d{3})\s+(\d{2}\.\d+)$/.exec(str.trim());
   if (!m) return null;
@@ -88,7 +76,10 @@ function adifCoordToDecimal(str) {
   return val;
 }
 
-// Sáv normalizálás (IARU R1 szerint, frekvencia MHz-ben)
+// =========================
+// 3. SÁV / MÓD NORMALIZÁLÁS
+// =========================
+
 function normalizeBand(qso) {
   if (qso.band) return qso.band.toLowerCase();
   if (!qso.freq) return 'unk';
@@ -141,20 +132,18 @@ function normalizeMode(qso) {
   return (qso.mode || 'UNK').toUpperCase();
 }
 
-// Saját QTH adatok
+// =========================
+// 4. SAJÁT QTH BETÖLTÉSE (index.html mezőkből)
+// =========================
+
 let myCall = null;
 let myGrid = null;
 let myLat = null;
 let myLon = null;
 
-// Saját QTH bekérése
-async function askUserQth() {
-  if (!myCall) {
-    myCall = prompt("Add meg a saját hívójeled (pl. HG4ZKZ):") || "";
-  }
-  if (!myGrid) {
-    myGrid = prompt("Add meg a saját grid lokátorod (pl. JN97eh):") || "";
-  }
+function loadUserQth() {
+  myCall = document.getElementById("myCall").value.trim();
+  myGrid = document.getElementById("myGrid").value.trim();
 
   if (myGrid) {
     const pos = maidenheadToLatLon(myGrid);
@@ -165,7 +154,10 @@ async function askUserQth() {
   }
 }
 
-// Prefix alapú QSO kiegészítés (cty.json + cty.js alapján)
+// =========================
+// 5. PREFIX ALAPÚ QSO KIEGÉSZÍTÉS (cty.json alapján)
+// =========================
+
 function enhanceQso(qso) {
   const info = lookupCallsign(qso.call || "");
 
@@ -174,19 +166,19 @@ function enhanceQso(qso) {
     if (!qso.dxcc) qso.dxcc = info.dxcc;
     if (!qso.continent) qso.continent = info.continent;
 
-    // numerikus lat/lon a cty.json-ből
+    // lat/lon a cty.json-ből
     if (!qso.lat_dec && !qso.lon_dec && info.lat != null && info.lon != null) {
       qso.lat_dec = info.lat;
       qso.lon_dec = info.lon;
     }
 
-    // ha nincs gridsquare, de van lat/lon → számolunk
+    // ha nincs grid, de van lat/lon → számolunk
     if (!qso.gridsquare && qso.lat_dec != null && qso.lon_dec != null) {
       qso.gridsquare = latLonToMaidenhead(qso.lat_dec, qso.lon_dec);
     }
   }
 
-  // ha ADIF-ben van LAT/LON string, konvertáljuk decimálissá
+  // ADIF LAT/LON → decimális
   if (!qso.lat_dec && qso.lat) {
     const v = adifCoordToDecimal(qso.lat);
     if (v != null) qso.lat_dec = v;
@@ -196,7 +188,7 @@ function enhanceQso(qso) {
     if (v != null) qso.lon_dec = v;
   }
 
-  // ha nincs decimális, de van grid → onnan lat/lon
+  // ha nincs decimális, de van grid → gridből számolunk
   if ((qso.lat_dec == null || qso.lon_dec == null) && qso.gridsquare) {
     const pos = maidenheadToLatLon(qso.gridsquare);
     if (pos) {
@@ -208,7 +200,10 @@ function enhanceQso(qso) {
   return qso;
 }
 
-// Két koordináta közötti távolság (km)
+// =========================
+// 6. TÁVOLSÁG SZÁMÍTÁS
+// =========================
+
 function distanceKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -220,13 +215,17 @@ function distanceKm(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// Statisztika számítás
+// =========================
+// 7. STATISZTIKA SZÁMÍTÁS
+// =========================
+
 function computeStats(qsos) {
   const dxccCounts = {};
   const countryByDxcc = {};
   const continentCounts = {};
   const modeCounts = {};
   const bandCounts = {};
+
   let minDistance = Infinity;
   let maxDistance = 0;
   let minQso = null;
@@ -242,20 +241,20 @@ function computeStats(qsos) {
         countryByDxcc[dxcc] = qso.country;
       }
 
-      // elsődlegesen a cty.json-ből jövő continent mezőt használjuk
+      // elsődlegesen a cty.json kontinens mezője
       let cont = qso.continent || dxccToContinent(dxcc) || 'Ismeretlen';
-      if (!cont) cont = 'Ismeretlen';
-
       continentCounts[cont] = (continentCounts[cont] || 0) + 1;
     }
 
+    // mód
     const mode = normalizeMode(qso);
     modeCounts[mode] = (modeCounts[mode] || 0) + 1;
 
+    // sáv
     const band = normalizeBand(qso);
     bandCounts[band] = (bandCounts[band] || 0) + 1;
 
-    // Távolság saját QTH-hoz, ha van myLat/myLon és QSO koordináta
+    // távolság saját QTH-hoz
     if (myLat != null && myLon != null && qso.lat_dec != null && qso.lon_dec != null) {
       const d = distanceKm(myLat, myLon, qso.lat_dec, qso.lon_dec);
       qso.distance = d;
@@ -288,7 +287,10 @@ function computeStats(qsos) {
   };
 }
 
-// DOM elemek
+// =========================
+// 8. DOM ELEMEK
+// =========================
+
 const fileInput = document.getElementById('fileInput');
 const dropZone = document.getElementById('dropZone');
 const statusEl = document.getElementById('status');
@@ -305,66 +307,10 @@ const continentSummaryEl = document.getElementById('continentSummary');
 let dxccChart, continentChart, modeChart, bandChart;
 let map;
 
-// Fájl beolvasása
-fileInput.addEventListener('change', handleFileSelect);
+// =========================
+// 9. TÁBLÁZATOK RENDERELÉSE
+// =========================
 
-function handleFileSelect(e) {
-  const file = e.target.files[0];
-  if (file) readFile(file);
-}
-
-// Drag & drop
-dropZone.addEventListener('dragover', e => {
-  e.preventDefault();
-  dropZone.classList.add('dragover');
-});
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('dragover');
-  const file = e.dataTransfer.files[0];
-  if (file) readFile(file);
-});
-
-// Fájl feldolgozása + CTY betöltés + saját QTH bekérés
-async function readFile(file) {
-  await loadCty();      // cty.json betöltése (cty.js)
-  await askUserQth();   // saját hívójel + grid bekérése
-
-  const reader = new FileReader();
-
-  reader.onload = e => {
-    const text = e.target.result;
-    statusEl.textContent = `Fájl beolvasva: ${file.name}, feldolgozás…`;
-
-    let qsos = parseAdif(text);
-    qsos = qsos.map(enhanceQso);
-
-    // --- ADIF VALIDÁCIÓ ---
-    if (qsos.length === 0) {
-      statusEl.innerHTML = `
-        <span style="color:red; font-weight:bold;">
-          A fájl nem tűnik érvényes ADIF formátumnak.
-        </span><br>
-        Kérlek tölts fel egy .adi vagy .adif naplófájlt.
-      `;
-      return;
-    }
-    // -----------------------
-
-    const stats = computeStats(qsos);
-    renderStats(stats);
-    renderContinentTable(stats);
-    renderCharts(stats);
-    renderMap(qsos);
-
-    statusEl.textContent = `Kész: ${stats.totalQso} QSO feldolgozva.`;
-  };
-
-  reader.readAsText(file);
-}
-
-// Statisztika kiírása
 function renderStats(stats) {
   totalQsoEl.textContent = stats.totalQso;
   totalDxccEl.textContent = stats.totalDxcc;
@@ -390,7 +336,6 @@ function renderStats(stats) {
   });
 }
 
-// Kontinens táblázat + összesítés
 function renderContinentTable(stats) {
   continentTableBody.innerHTML = '';
 
@@ -408,9 +353,7 @@ function renderContinentTable(stats) {
   });
 
   if (sorted.length === 0) {
-    continentSummaryEl.innerHTML = `
-      <p>Nincs elérhető kontinens statisztika.</p>
-    `;
+    continentSummaryEl.innerHTML = `<p>Nincs elérhető kontinens statisztika.</p>`;
     return;
   }
 
@@ -423,7 +366,6 @@ function renderContinentTable(stats) {
   `;
 }
 
-// Módok táblázat
 function renderModeTable(stats) {
   const tbody = document.querySelector('#modeTable tbody');
   tbody.innerHTML = '';
@@ -442,7 +384,6 @@ function renderModeTable(stats) {
   });
 }
 
-// Sávok táblázat
 function renderBandTable(stats) {
   const tbody = document.querySelector('#bandTable tbody');
   tbody.innerHTML = '';
@@ -461,7 +402,70 @@ function renderBandTable(stats) {
   });
 }
 
-// Chartok
+// =========================
+// 10. FÁJL BEOLVASÁSA
+// =========================
+
+fileInput.addEventListener('change', handleFileSelect);
+
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) readFile(file);
+}
+
+// Drag & drop
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) readFile(file);
+});
+
+// Fájl feldolgozása + CTY betöltés + saját QTH betöltése
+async function readFile(file) {
+  await loadCty();      // cty.json betöltése
+  loadUserQth();        // saját hívójel + grid betöltése
+
+  const reader = new FileReader();
+
+  reader.onload = e => {
+    const text = e.target.result;
+    statusEl.textContent = `Fájl beolvasva: ${file.name}, feldolgozás…`;
+
+    let qsos = parseAdif(text);
+    qsos = qsos.map(enhanceQso);
+
+    if (qsos.length === 0) {
+      statusEl.innerHTML = `
+        <span style="color:red; font-weight:bold;">
+          A fájl nem tűnik érvényes ADIF formátumnak.
+        </span><br>
+        Kérlek tölts fel egy .adi vagy .adif naplófájlt.
+      `;
+      return;
+    }
+
+    const stats = computeStats(qsos);
+    renderStats(stats);
+    renderContinentTable(stats);
+    renderCharts(stats);
+    renderMap(qsos);
+
+    statusEl.textContent = `Kész: ${stats.totalQso} QSO feldolgozva.`;
+  };
+
+  reader.readAsText(file);
+}
+
+// =========================
+// 11. CHARTOK
+// =========================
+
 function renderCharts(stats) {
   // DXCC chart
   const dxccLabels = stats.dxccTop.map(d => `${d.dxcc} (${d.country})`);
@@ -524,7 +528,10 @@ function renderCharts(stats) {
   renderBandTable(stats);
 }
 
-// Térkép renderelés
+// =========================
+// 12. TÉRKÉP
+// =========================
+
 function renderMap(qsos) {
   if (!map) {
     map = L.map('map').setView([20, 0], 2);
