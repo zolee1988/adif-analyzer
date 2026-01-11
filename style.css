@@ -110,3 +110,22 @@ footer {
   font-size: 0.8rem;
   color: #9ca7d9;
 }
+
+#continentTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+#continentTable th,
+#continentTable td {
+  border-bottom: 1px solid #27325a;
+  padding: 0.4rem 0.5rem;
+}
+
+#continentTable th {
+  text-align: left;
+  background: #1b2238;
+}
+
