@@ -28,6 +28,29 @@
   <main>
 
     <!-- 1. Feltöltés -->
+
+<!-- Saját QTH megadása -->
+<section id="qth-section">
+  <h2>0. Saját adatok</h2>
+
+  <div class="qth-grid">
+    <div>
+      <label for="myCall"><strong>Saját hívójel:</strong></label>
+      <input type="text" id="myCall" placeholder="pl. HG4ZKZ">
+    </div>
+
+    <div>
+      <label for="myGrid"><strong>Saját lokátor:</strong></label>
+      <input type="text" id="myGrid" placeholder="pl. JN97eh">
+    </div>
+  </div>
+
+  <p class="qth-hint">
+    Ezek alapján számoljuk a távolságokat és a térképes pozíciókat.
+  </p>
+</section>
+
+    
     <section id="upload-section">
       <h2>1. ADIF fájl betöltése</h2>
       <input type="file" id="fileInput" accept=".adi,.adif,.txt">
