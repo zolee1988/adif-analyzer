@@ -192,8 +192,8 @@ function enhanceQso(qso) {
     qso.continent = info.Continent;
 
     if (info.Latitude != null && info.Longitude != null) {
-      qso.lat_dec = info.Latitude;
-      qso.lon_dec = -info.Longitude;
+      qso.lat_dec = info.Longitude;
+qso.lon_dec = info.Latitude;
     }
   }
 
