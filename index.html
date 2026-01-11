@@ -4,19 +4,25 @@
   <meta charset="UTF-8">
   <title>HG4ZKZ ADIF Log Analyzer</title>
   <link rel="stylesheet" href="style.css">
+
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Leaflet (térkép, opcionális) -->
+
+  <!-- Leaflet (térkép) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
+
 <body>
   <header>
     <h1>ADIF Log Analyzer</h1>
     <p>ADIF feltöltés után automatikus statisztika: DXCC, kontinensek, távolságok, módok, sávok.</p>
+    <p>Tetszik a munkám? Támogass PayPal-on:<a href="https://www.paypal.me/zolikakiss" target="_blank"><img src="https://img.shields.io/badge/PayPal-Donate-blue.svg" alt="Donate with PayPal button"></a></p>
   </header>
 
   <main>
+
+    <!-- 1. Feltöltés -->
     <section id="upload-section">
       <h2>1. ADIF fájl betöltése</h2>
       <input type="file" id="fileInput" accept=".adi,.adif,.txt">
@@ -24,6 +30,7 @@
       <p id="status"></p>
     </section>
 
+    <!-- 2. Összefoglaló -->
     <section id="summary-section">
       <h2>2. Összefoglaló</h2>
       <div class="summary-grid">
@@ -46,8 +53,10 @@
       </div>
     </section>
 
+    <!-- 3. DXCC -->
     <section id="dxcc-section">
       <h2>3. Top 10 DXCC ország</h2>
+
       <table id="dxccTable">
         <thead>
           <tr>
@@ -59,48 +68,67 @@
         </thead>
         <tbody></tbody>
       </table>
+
       <canvas id="dxccChart"></canvas>
     </section>
 
-<section id="continent-section">
-  <h2>4. Kontinens eloszlás</h2>
+    <!-- 4. Kontinensek -->
+    <section id="continent-section">
+      <h2>4. Kontinens eloszlás</h2>
 
-  <table id="continentTable">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Kontinens</th>
-        <th>QSO</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+      <table id="continentTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Kontinens</th>
+            <th>QSO</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
 
-  <div id="continentSummary" class="summary-box"></div>
+      <div id="continentSummary" class="summary-box"></div>
 
-  <canvas id="continentChart"></canvas>
-</section>
-
-
-
-    <section id="mode-band-section">
-      <h2>5. Módok és sávok</h2>
-      <div class="chart-row">
-        <div>
-          <h3>Módok</h3>
-          <canvas id="modeChart"></canvas>
-        </div>
-        <div>
-          <h3>Sávok</h3>
-          <canvas id="bandChart"></canvas>
-        </div>
-      </div>
+      <canvas id="continentChart"></canvas>
     </section>
 
+    <!-- 5. Módok és sávok -->
+    <section id="mode-band-section">
+      <h2>5. Módok és sávok</h2>
+
+      <h3>Módok</h3>
+      <table id="modeTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Mód</th>
+            <th>QSO</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <canvas id="modeChart"></canvas>
+
+      <h3>Sávok</h3>
+      <table id="bandTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Sáv</th>
+            <th>QSO</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <canvas id="bandChart"></canvas>
+    </section>
+
+    <!-- 6. Térkép -->
     <section id="map-section">
       <h2>6. Térkép (DX QSO-k)</h2>
       <div id="map"></div>
     </section>
+
   </main>
 
   <script src="app.js"></script>
