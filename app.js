@@ -163,6 +163,7 @@ const maxDistanceEl = document.getElementById('maxDistance');
 
 const dxccTableBody = document.querySelector('#dxccTable tbody');
 const continentTableBody = document.querySelector('#continentTable tbody');
+const continentSummaryEl = document.getElementById('continentSummary');
 
 let dxccChart, continentChart, modeChart, bandChart;
 let map;
@@ -230,7 +231,7 @@ function renderStats(stats) {
   });
 }
 
-// Kontinens táblázat
+// Kontinens táblázat + összesítés
 function renderContinentTable(stats) {
   continentTableBody.innerHTML = '';
 
@@ -246,6 +247,16 @@ function renderContinentTable(stats) {
     `;
     continentTableBody.appendChild(tr);
   });
+
+  const total = sorted.reduce((sum, [, c]) => sum + c, 0);
+  const unique = sorted.length;
+  const top = sorted[0];
+
+  continentSummaryEl.innerHTML = `
+    <p><strong>Összes QSO:</strong> ${total}</p>
+    <p><strong>Kontinensek száma:</strong> ${unique}</p>
+    <p><strong>Legnépszerűbb kontinens:</strong> ${top[0]} (${top[1]} QSO)</p>
+  `;
 }
 
 // Chartok
