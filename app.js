@@ -84,7 +84,7 @@ function normalizeMode(qso) {
 function computeStats(qsos) {
   const dxccCounts = {};
   const countryByDxcc = {};
-  const continentCounts = {};
+  const continentCounts = Object.create(null);
   const modeCounts = {};
   const bandCounts = {};
   let minDistance = Infinity;
@@ -121,10 +121,12 @@ function computeStats(qsos) {
     }
   });
 
-  // <<< EZ A FIX
-  delete continentCounts[""];
-  delete continentCounts[undefined];
-  delete continentCounts[null];
+  // <<< VÉGLEGES FIX: minden üres / whitespace kulcs törlése
+  for (const key in continentCounts) {
+    if (!key || key.trim() === "") {
+      delete continentCounts[key];
+    }
+  }
 
   const dxccTop = Object.entries(dxccCounts)
     .sort((a, b) => b[1] - a[1])
