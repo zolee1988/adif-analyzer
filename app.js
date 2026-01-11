@@ -66,7 +66,7 @@ function latLonToMaidenhead(lat, lon) {
 }
 
 function adifCoordToDecimal(str) {
-  const m = /^([NSWE])(\d{3})\s+(\d{2}\.\d+)$/.exec(str.trim());
+  const m = /^([NSWE])0?(\d{2,3})\s+(\d{2}(?:\.\d+)?)$/.exec(str.trim());
   if (!m) return null;
   const dir = m[1];
   const deg = parseInt(m[2], 10);
@@ -547,8 +547,28 @@ function renderMap(qsos) {
   });
 
   qsos.forEach(qso => {
-    let lat = qso.lat_dec;
-    let lon = qso.lon_dec;
+    let lat = qso.lat_dec ?? null;
+let lon = qso.lon_dec ?? null;
+
+// ha ADIF lat/lon van, de decimális nincs → konvertáljuk most
+if ((lat == null || lon == null) && qso.lat && qso.lon) {
+  const la = adifCoordToDecimal(qso.lat);
+  const lo = adifCoordToDecimal(qso.lon);
+  if (la != null && lo != null) {
+    lat = la;
+    lon = lo;
+  }
+}
+
+// ha még mindig nincs → grid fallback
+if ((lat == null || lon == null) && qso.gridsquare) {
+  const pos = maidenheadToLatLon(qso.gridsquare);
+  if (pos) {
+    lat = pos.lat;
+    lon = pos.lon;
+  }
+}
+
 
     if (lat == null || lon == null) return;
 
