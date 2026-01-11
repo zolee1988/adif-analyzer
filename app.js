@@ -1,8 +1,7 @@
 // Egyszerű ADIF parser: minden <eor> egy QSO
 function parseAdif(text) {
   const records = text.split(/<eor>/i).map(r => r.trim()).filter(Boolean);
-  const qsos = records.map(parseAdifRecord).filter(q => q.call);
-  return qsos;
+  return records.map(parseAdifRecord).filter(q => q.call);
 }
 
 // Egy rekord feldarabolása mezőkre
@@ -96,47 +95,18 @@ function computeStats(qsos) {
   qsos.forEach(qso => {
     const dxcc = qso.dxcc || null;
 
-    // DXCC számolás
     if (dxcc) {
-        dxccCounts[dxcc] = (dxccCounts[dxcc] || 0) + 1;
+      dxccCounts[dxcc] = (dxccCounts[dxcc] || 0) + 1;
 
-        if (qso.country) {
-            countryByDxcc[dxcc] = qso.country;
-        }
+      if (qso.country) {
+        countryByDxcc[dxcc] = qso.country;
+      }
 
-        // Kontinens meghatározása
-        let cont = dxccToContinent(dxcc);
+      let cont = dxccToContinent(dxcc);
+      if (!cont || cont === 'undefined') cont = 'Ismeretlen';
 
-        // Ha valamiért undefined / üres → legyen "Ismeretlen"
-        if (!cont || cont === 'undefined') {
-            cont = 'Ismeretlen';
-        }
-
-        continentCounts[cont] = (continentCounts[cont] || 0) + 1;
+      continentCounts[cont] = (continentCounts[cont] || 0) + 1;
     }
-
-    // Mode
-    const mode = normalizeMode(qso);
-    modeCounts[mode] = (modeCounts[mode] || 0) + 1;
-
-    // Band
-    const band = normalizeBand(qso);
-    bandCounts[band] = (bandCounts[band] || 0) + 1;
-
-    // Distance
-    const d = parseFloat(qso.distance);
-    if (!isNaN(d) && d > 0) {
-        if (d < minDistance) {
-            minDistance = d;
-            minQso = qso;
-        }
-        if (d > maxDistance) {
-            maxDistance = d;
-            maxQso = qso;
-        }
-    }
-});
-
 
     const mode = normalizeMode(qso);
     modeCounts[mode] = (modeCounts[mode] || 0) + 1;
@@ -324,13 +294,11 @@ function renderMap(qsos) {
     let lat = null;
     let lon = null;
 
-    // 1) ADIF lat/lon
     if (qso.lat && qso.lon) {
       lat = adifCoordToDecimal(qso.lat);
       lon = adifCoordToDecimal(qso.lon);
     }
 
-    // 2) Ha nincs, de van grid → számoljuk
     if ((!lat || !lon) && qso.gridsquare) {
       const pos = maidenheadToLatLon(qso.gridsquare);
       if (pos) {
