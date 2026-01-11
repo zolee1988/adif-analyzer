@@ -285,7 +285,7 @@ function renderCharts(stats) {
       labels: contLabels,
       datasets: [{
         data: contData,
-        backgroundColor: ['#4f6bff','#ff7b7b','#ffd15c','#6be39e','#b57bff','#ff9ad5']
+        backgroundColor: '#4f6bff'
       }]
     },
     options: { responsive: true, plugins: { legend: { display: false } } }
@@ -311,7 +311,7 @@ function renderCharts(stats) {
     type: 'bar',
     data: {
       labels: bandLabels,
-      datasets: [{ data: bandData, backgroundColor: '#6be39e' }]
+      datasets: [{ data: bandData, backgroundColor: '#4f6bff' }]
     },
     options: { responsive: true, plugins: { legend: { display: false } } }
   });
