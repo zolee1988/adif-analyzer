@@ -7,11 +7,11 @@ function parseAdif(text) {
 // Egy rekord feldarabolása mezőkre
 function parseAdifRecord(block) {
   const qso = {};
-  const regex = /<([^:>]+)(?::(\d+))?(?:[^>]*)>([^<]*)/gi;
+  const regex = /<([^:>]+)(?::(\d+))?(?::([A-Z]))?[^>]*>([^<]*)/gi;
   let match;
   while ((match = regex.exec(block)) !== null) {
     const field = match[1].toLowerCase();
-    const value = match[3].trim();
+    const value = match[4].trim();
     qso[field] = value;
   }
   return qso;
