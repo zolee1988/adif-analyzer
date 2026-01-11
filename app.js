@@ -186,36 +186,16 @@ function loadUserQth() {
 function enhanceQso(qso) {
   const info = lookupCallsign(qso.call || "");
 
-  // 1) DXCC alapadatok
   if (info) {
-    if (!qso.country) qso.country = info.country;
-    if (!qso.dxcc) qso.dxcc = info.dxcc;
-    if (!qso.continent) qso.continent = info.continent;
-  }
+    qso.country = info.country;
+    qso.dxcc = info.dxcc;
+    qso.continent = info.continent;
 
-  // 2) ADIF LAT/LON → decimális
-  if (qso.lat && !qso.lat_dec) {
-    const v = adifCoordToDecimal(qso.lat);
-    if (v != null) qso.lat_dec = v;
-  }
-  if (qso.lon && !qso.lon_dec) {
-    const v = adifCoordToDecimal(qso.lon);
-    if (v != null) qso.lon_dec = v;
-  }
-
-  // 3) Grid → decimális
-  if ((!qso.lat_dec || !qso.lon_dec) && qso.gridsquare) {
-    const pos = maidenheadToLatLon(qso.gridsquare);
-    if (pos) {
-      qso.lat_dec = pos.lat;
-      qso.lon_dec = pos.lon;
+    // CTY lat/lon → decimális
+    if (info.lat != null && info.lon != null) {
+      qso.lat_dec = info.lat;
+      qso.lon_dec = info.lon;
     }
-  }
-
-  // 4) CTY fallback → decimális
-  if ((!qso.lat_dec || !qso.lon_dec) && info && info.lat != null && info.lon != null) {
-    qso.lat_dec = info.lat;
-    qso.lon_dec = info.lon;
   }
 
   return qso;
@@ -568,30 +548,14 @@ function renderMap(qsos) {
   });
 
   qsos.forEach(qso => {
-    let lat = qso.lat_dec ?? null;
-let lon = qso.lon_dec ?? null;
+    const lat = qso.lat_dec;
+    const lon = qso.lon_dec;
 
-// ha ADIF lat/lon van, de decimális nincs → konvertáljuk most
-if ((lat == null || lon == null) && qso.lat && qso.lon) {
-  const la = adifCoordToDecimal(qso.lat);
-  const lo = adifCoordToDecimal(qso.lon);
-  if (la != null && lo != null) {
-    lat = la;
-    lon = lo;
-  }
-}
-
-// ha még mindig nincs → grid fallback
-if ((lat == null || lon == null) && qso.gridsquare) {
-  const pos = maidenheadToLatLon(qso.gridsquare);
-  if (pos) {
-    lat = pos.lat;
-    lon = pos.lon;
-  }
-}
-
-
-    if (lat == null || lon == null) return;
+    // Ha nincs koordináta → nem rajzolunk markert
+    if (typeof lat !== "number" || typeof lon !== "number") {
+      console.warn("Hiányzó koordináta:", qso.call, lat, lon);
+      return;
+    }
 
     const call = qso.call || '';
     const url = `https://www.qrz.com/db/${call}`;
@@ -600,7 +564,7 @@ if ((lat == null || lon == null) && qso.gridsquare) {
       .bindPopup(`
         <a href="${url}" target="_blank">${call}</a><br>
         ${qso.country || ''}<br>
-        ${qso.distance ? qso.distance.toFixed(0) + ' km' : ''}<br>
+        DXCC: ${qso.dxcc || ''}<br>
         Grid: ${qso.gridsquare || 'N/A'}<br>
         Date: ${qso.qso_date || 'N/A'}<br>
         Mode: ${qso.mode || 'N/A'}<br>
