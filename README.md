@@ -67,8 +67,6 @@ Felhasznált könyvtárak:
 - Leaflet – BSD‑2  
 - OpenStreetMap – ODbL  
 
-A licencek szövege a `THIRD_PARTY_LICENSES` fájlban található.
-
 ---
 
 ## Ha szeretnéd támogatni a projektet és a munkámat, PayPal-on tudsz támogatást küldeni:
