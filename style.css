@@ -118,3 +118,30 @@ footer {
   font-size: 0.8rem;
   color: #9ca7d9;
 }
+
+#qth-section {
+  margin-bottom: 25px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.qth-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.qth-grid input {
+  width: 180px;
+  padding: 6px;
+  font-size: 1em;
+}
+
+.qth-hint {
+  font-size: 0.9em;
+  color: #555;
+  margin-top: 8px;
+}
+
