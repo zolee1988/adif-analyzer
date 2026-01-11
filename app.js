@@ -64,7 +64,7 @@ function adifCoordToDecimal(str) {
   return val;
 }
 
-// Rövid band normalizálás (IARU R1)
+// Sáv normalizálás (IARU R1 szerint, frekvencia MHz-ben)
 function normalizeBand(qso) {
   if (qso.band) return qso.band.toLowerCase();
   if (!qso.freq) return 'unk';
@@ -284,7 +284,6 @@ function renderContinentTable(stats) {
 
   continentSummaryEl.innerHTML = `
     <p><strong>Összes QSO:</strong> ${total}</p>
-    <p><strong>Kontinensek száma:</strong> ${unique}</p>
     <p><strong>Legnépszerűbb kontinens:</strong> ${top[0]} (${top[1]} QSO)</p>
   `;
 }
@@ -329,7 +328,6 @@ function renderBandTable(stats) {
 
 // Chartok
 function renderCharts(stats) {
-
   // DXCC chart
   const dxccLabels = stats.dxccTop.map(d => `${d.dxcc} (${d.country})`);
   const dxccData = stats.dxccTop.map(d => d.count);
@@ -358,7 +356,7 @@ function renderCharts(stats) {
     options: { responsive: true, plugins: { legend: { display: false } } }
   });
 
-  // Mode chart (új, egységes)
+  // Mode chart (egységes oszlopdiagram)
   if (modeChart) modeChart.destroy();
   modeChart = new Chart(document.getElementById('modeChart'), {
     type: 'bar',
@@ -372,7 +370,7 @@ function renderCharts(stats) {
     options: { responsive: true, plugins: { legend: { display: false } } }
   });
 
-  // Band chart (egységes)
+  // Band chart (egységes oszlopdiagram)
   if (bandChart) bandChart.destroy();
   bandChart = new Chart(document.getElementById('bandChart'), {
     type: 'bar',
@@ -386,7 +384,7 @@ function renderCharts(stats) {
     options: { responsive: true, plugins: { legend: { display: false } } }
   });
 
-  // ÚJ táblázatok
+  // Táblázatok frissítése
   renderModeTable(stats);
   renderBandTable(stats);
 }
@@ -429,4 +427,6 @@ function renderMap(qsos) {
     const url = `https://www.qrz.com/db/${call}`;
 
     L.marker([lat, lon]).addTo(map)
-      .bindPopup(`<a href="${url}" target="_blank">${call}</a
+      .bindPopup(`<a href="${url}" target="_blank">${call}</a><br>${qso.country || ''}<br>${qso.distance ? qso.distance + ' km' : ''}`);
+  });
+}
