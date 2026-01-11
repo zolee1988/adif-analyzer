@@ -1,10 +1,10 @@
 # 📡 ADIF Log Analyzer  
 Webes, kliensoldali ADIF elemző rádióamatőröknek.
 
-👉 **Használd itt:**  
+👉 **Link:**  
 https://zolee1988.github.io/adif-analyzer/
 
-Nincs telepítés, nincs regisztráció, nincs adatküldés — csak húzd rá az ADIF fájlodat, és már kész is a statisztika.
+Nincs telepítés, nincs regisztráció, nincs adatküldés, csak húzd rá az ADIF fájlodat, és már kész is a statisztika.
 
 ---
 
@@ -31,7 +31,6 @@ Nincs telepítés, nincs regisztráció, nincs adatküldés — csak húzd rá a
 ### 🔐 Teljesen kliensoldali működés
 - A fájl **nem kerül feltöltésre**  
 - Minden feldolgozás a böngészőben történik  
-- Gyors, biztonságos, offline‑barát
 
 ---
 
