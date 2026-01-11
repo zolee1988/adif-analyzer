@@ -427,6 +427,15 @@ function renderMap(qsos) {
     const url = `https://www.qrz.com/db/${call}`;
 
     L.marker([lat, lon]).addTo(map)
-      .bindPopup(`<a href="${url}" target="_blank">${call}</a><br>${qso.country || ''}<br>${qso.distance ? qso.distance + ' km' : ''}`);
+  .bindPopup(`
+    <a href="${url}" target="_blank">${call}</a><br>
+    ${qso.country || ''}<br>
+    ${qso.distance ? qso.distance + ' km' : ''}<br>
+    Grid: ${qso.gridsquare || 'N/A'}<br>
+    Date: ${qso.qso_date || 'N/A'}<br>
+    Mode: ${qso.mode || 'N/A'}<br>
+    Band: ${normalizeBand(qso)}
+  `);
+
   });
 }
