@@ -21,15 +21,35 @@ function parseAdifRecord(block) {
 // DXCC -> kontinens (nagyon durva, egyszerűsített mapping)
 function dxccToContinent(dxcc) {
   const n = parseInt(dxcc, 10);
-  if (isNaN(n)) return 'UNK';
-  if ([291,1,48,67,94].includes(n)) return 'NA'; // USA, CAN, stb.
-  if ([108,116,88,90].includes(n)) return 'SA'; // PY, CO, HP, 9Y
-  if ([327,339,324,299,375,304,305].includes(n)) return 'AS'; // YB, JA, VU, 9W, DU, A9, S21
-  if ([239,248,263,230,281,223,294,272,296,206,501,224,179].includes(n)) return 'EU';
-  if ([462].includes(n)) return 'AF'; // ZS6
-  if ([375,327].includes(n)) return 'OC'; // DU/YB (OC-021)
-  return 'UNK';
+  if (isNaN(n)) return 'Ismeretlen';
+
+  // Észak-Amerika
+  if ([291, 1, 6, 67, 94, 50].includes(n)) 
+    return 'Észak-Amerika';
+
+  // Dél-Amerika
+  if ([108, 116, 88, 90].includes(n)) 
+    return 'Dél-Amerika';
+
+  // Európa
+  if ([239, 248, 263, 230, 281, 223, 294, 272, 296, 206, 501].includes(n)) 
+    return 'Európa';
+
+  // Ázsia
+  if ([327, 339, 324, 299, 375, 304, 305].includes(n)) 
+    return 'Ázsia';
+
+  // Afrika
+  if ([462].includes(n)) 
+    return 'Afrika';
+
+  // Óceánia
+  if ([375, 327].includes(n)) 
+    return 'Óceánia';
+
+  return 'Ismeretlen';
 }
+
 
 // Rövid band/string normalizálás (pl. 70cm, 2m, 20m, 40m)
 function normalizeBand(qso) {
