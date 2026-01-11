@@ -66,15 +66,54 @@ function adifCoordToDecimal(str) {
 
 // Rövid band normalizálás
 function normalizeBand(qso) {
+  // Ha az ADIF-ben eleve van BAND mező, azt használjuk
   if (qso.band) return qso.band.toLowerCase();
   if (!qso.freq) return 'unk';
-  const f = parseFloat(qso.freq);
-  if (f > 430 && f < 450) return '70cm';
-  if (f > 140 && f < 150) return '2m';
-  if (f > 13 && f < 15) return '20m';
-  if (f > 6 && f < 8) return '40m';
+
+  const f = parseFloat(qso.freq); // MHz-ben értelmezve
+
+  // HF (IARU Region 1)
+  if (f >= 0.1357 && f <= 0.1378) return '2200m';
+  if (f >= 0.472 && f <= 0.479) return '630m';
+  if (f >= 1.810 && f <= 2.000) return '160m';
+  if (f >= 3.500 && f <= 3.800) return '80m';
+  if (f >= 5.3515 && f <= 5.3665) return '60m';
+  if (f >= 7.000 && f <= 7.200) return '40m';
+  if (f >= 10.100 && f <= 10.150) return '30m';
+  if (f >= 14.000 && f <= 14.350) return '20m';
+  if (f >= 18.068 && f <= 18.168) return '17m';
+  if (f >= 21.000 && f <= 21.450) return '15m';
+  if (f >= 24.890 && f <= 24.990) return '12m';
+  if (f >= 28.000 && f <= 29.700) return '10m';
+
+  // VHF
+  if (f >= 50 && f <= 54) return '6m';
+  if (f >= 70 && f <= 70.5) return '4m';
+  if (f >= 144 && f <= 146) return '2m';
+
+  // UHF
+  if (f >= 430 && f <= 440) return '70cm';
+  if (f >= 1240 && f <= 1300) return '23cm';
+
+  // SHF
+  if (f >= 2300 && f <= 2450) return '13cm';
+  if (f >= 3400 && f <= 3475) return '9cm';
+  if (f >= 5650 && f <= 5925) return '6cm'; // korrigált, valós tartomány
+
+  // 3 cm
+  if (f >= 10000 && f <= 10500) return '3cm';
+
+  // µW (microwave)
+  if (f >= 24000 && f <= 24250) return '1.2cm';
+  if (f >= 47000 && f <= 47200) return '6mm';
+  if (f >= 75500 && f <= 81500) return '4mm';
+  if (f >= 122250 && f <= 123000) return '2.5mm';
+  if (f >= 134000 && f <= 141000) return '2mm';
+  if (f >= 241000 && f <= 250000) return '1mm';
+
   return 'unk';
 }
+
 
 function normalizeMode(qso) {
   return (qso.mode || 'UNK').toUpperCase();
