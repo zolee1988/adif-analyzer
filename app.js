@@ -550,6 +550,7 @@ function renderMap(qsos) {
   qsos.forEach(qso => {
     const lat = qso.lat_dec;
     const lon = qso.lon_dec;
+    if (qso.lon_dec < 0) qso.lon_dec = -qso.lon_dec;
 
     // Ha nincs koordináta → nem rajzolunk markert
     if (typeof lat !== "number" || typeof lon !== "number") {
