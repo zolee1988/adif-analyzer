@@ -235,7 +235,7 @@ function renderCharts(stats) {
 
   if (continentChart) continentChart.destroy();
   continentChart = new Chart(document.getElementById('continentChart'), {
-    type: 'pie',
+    type: 'bar',
     data: {
       labels: contLabels,
       datasets: [{ data: contData, backgroundColor: ['#4f6bff','#ff7b7b','#ffd15c','#6be39e','#b57bff','#ff9ad5'] }]
