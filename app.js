@@ -95,12 +95,48 @@ function computeStats(qsos) {
 
   qsos.forEach(qso => {
     const dxcc = qso.dxcc || null;
+
+    // DXCC számolás
     if (dxcc) {
-      dxccCounts[dxcc] = (dxccCounts[dxcc] || 0) + 1;
-      if (qso.country) countryByDxcc[dxcc] = qso.country;
-      const cont = dxccToContinent(dxcc);
-      continentCounts[cont] = (continentCounts[cont] || 0) + 1;
+        dxccCounts[dxcc] = (dxccCounts[dxcc] || 0) + 1;
+
+        if (qso.country) {
+            countryByDxcc[dxcc] = qso.country;
+        }
+
+        // Kontinens meghatározása
+        let cont = dxccToContinent(dxcc);
+
+        // Ha valamiért undefined / üres → legyen "Ismeretlen"
+        if (!cont || cont === 'undefined') {
+            cont = 'Ismeretlen';
+        }
+
+        continentCounts[cont] = (continentCounts[cont] || 0) + 1;
     }
+
+    // Mode
+    const mode = normalizeMode(qso);
+    modeCounts[mode] = (modeCounts[mode] || 0) + 1;
+
+    // Band
+    const band = normalizeBand(qso);
+    bandCounts[band] = (bandCounts[band] || 0) + 1;
+
+    // Distance
+    const d = parseFloat(qso.distance);
+    if (!isNaN(d) && d > 0) {
+        if (d < minDistance) {
+            minDistance = d;
+            minQso = qso;
+        }
+        if (d > maxDistance) {
+            maxDistance = d;
+            maxQso = qso;
+        }
+    }
+});
+
 
     const mode = normalizeMode(qso);
     modeCounts[mode] = (modeCounts[mode] || 0) + 1;
