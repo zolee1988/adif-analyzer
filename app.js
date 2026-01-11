@@ -121,7 +121,7 @@ function computeStats(qsos) {
     }
   });
 
-  // <<< VÉGLEGES FIX: minden üres / whitespace kulcs törlése
+  // <<< minden üres / whitespace kulcs törlése
   for (const key in continentCounts) {
     if (!key || key.trim() === "") {
       delete continentCounts[key];
@@ -162,6 +162,7 @@ const minDistanceEl = document.getElementById('minDistance');
 const maxDistanceEl = document.getElementById('maxDistance');
 
 const dxccTableBody = document.querySelector('#dxccTable tbody');
+const continentTableBody = document.querySelector('#continentTable tbody');
 
 let dxccChart, continentChart, modeChart, bandChart;
 let map;
@@ -195,6 +196,7 @@ function readFile(file) {
     const qsos = parseAdif(text);
     const stats = computeStats(qsos);
     renderStats(stats);
+    renderContinentTable(stats);
     renderCharts(stats);
     renderMap(qsos);
     statusEl.textContent = `Kész: ${stats.totalQso} QSO feldolgozva.`;
@@ -228,6 +230,24 @@ function renderStats(stats) {
   });
 }
 
+// Kontinens táblázat
+function renderContinentTable(stats) {
+  continentTableBody.innerHTML = '';
+
+  const sorted = Object.entries(stats.continentCounts)
+    .sort((a, b) => b[1] - a[1]);
+
+  sorted.forEach(([continent, count], idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${idx + 1}</td>
+      <td>${continent}</td>
+      <td>${count}</td>
+    `;
+    continentTableBody.appendChild(tr);
+  });
+}
+
 // Chartok
 function renderCharts(stats) {
   const dxccLabels = stats.dxccTop.map(d => `${d.dxcc} (${d.country})`);
@@ -257,7 +277,7 @@ function renderCharts(stats) {
         backgroundColor: ['#4f6bff','#ff7b7b','#ffd15c','#6be39e','#b57bff','#ff9ad5']
       }]
     },
-    options: { responsive: true }
+    options: { responsive: true, plugins: { legend: { display: false } } }
   });
 
   const modeLabels = Object.keys(stats.modeCounts);
