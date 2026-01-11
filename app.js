@@ -535,7 +535,7 @@ function renderCharts(stats) {
 
 function renderMap(qsos) {
   if (!map) {
-    map = L.map('map').setView([20, 0], 2);
+    map = L.map('map').setView([47, 15], 4);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 10,
       attribution: '&copy; OpenStreetMap'
