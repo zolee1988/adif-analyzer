@@ -17,7 +17,7 @@ function parseAdifRecord(block) {
   return qso;
 }
 
-// DXCC -> kontinens (magyar)
+// DXCC -> kontinens (magyar) – már csak fallback, elsősorban cty.json-ből dolgozunk
 function dxccToContinent(dxcc) {
   const n = parseInt(dxcc, 10);
   if (isNaN(n)) return 'Ismeretlen';
@@ -50,6 +50,30 @@ function maidenheadToLatLon(grid) {
               (grid.length >= 8 ? (grid.charCodeAt(7) - 48) / 240 : 0);
 
   return { lat, lon };
+}
+
+// LAT/LON (decimális) -> Maidenhead lokátor
+function latLonToMaidenhead(lat, lon) {
+  lon += 180;
+  lat += 90;
+
+  const A = 'A'.charCodeAt(0);
+
+  const fieldLon = Math.floor(lon / 20);
+  const fieldLat = Math.floor(lat / 10);
+
+  const squareLon = Math.floor((lon % 20) / 2);
+  const squareLat = Math.floor(lat % 10);
+
+  const subsquareLon = Math.floor((lon % 2) * 12);
+  const subsquareLat = Math.floor((lat % 1) * 24);
+
+  return String.fromCharCode(A + fieldLon)
+       + String.fromCharCode(A + fieldLat)
+       + squareLon.toString()
+       + squareLat.toString()
+       + String.fromCharCode(A + subsquareLon)
+       + String.fromCharCode(A + subsquareLat);
 }
 
 // ADIF lat/lon -> decimális
@@ -117,6 +141,85 @@ function normalizeMode(qso) {
   return (qso.mode || 'UNK').toUpperCase();
 }
 
+// Saját QTH adatok
+let myCall = null;
+let myGrid = null;
+let myLat = null;
+let myLon = null;
+
+// Saját QTH bekérése
+async function askUserQth() {
+  if (!myCall) {
+    myCall = prompt("Add meg a saját hívójeled (pl. HG4ZKZ):") || "";
+  }
+  if (!myGrid) {
+    myGrid = prompt("Add meg a saját grid lokátorod (pl. JN97eh):") || "";
+  }
+
+  if (myGrid) {
+    const pos = maidenheadToLatLon(myGrid);
+    if (pos) {
+      myLat = pos.lat;
+      myLon = pos.lon;
+    }
+  }
+}
+
+// Prefix alapú QSO kiegészítés (cty.json + cty.js alapján)
+function enhanceQso(qso) {
+  const info = lookupCallsign(qso.call || "");
+
+  if (info) {
+    if (!qso.country) qso.country = info.country;
+    if (!qso.dxcc) qso.dxcc = info.dxcc;
+    if (!qso.continent) qso.continent = info.continent;
+
+    // numerikus lat/lon a cty.json-ből
+    if (!qso.lat_dec && !qso.lon_dec && info.lat != null && info.lon != null) {
+      qso.lat_dec = info.lat;
+      qso.lon_dec = info.lon;
+    }
+
+    // ha nincs gridsquare, de van lat/lon → számolunk
+    if (!qso.gridsquare && qso.lat_dec != null && qso.lon_dec != null) {
+      qso.gridsquare = latLonToMaidenhead(qso.lat_dec, qso.lon_dec);
+    }
+  }
+
+  // ha ADIF-ben van LAT/LON string, konvertáljuk decimálissá
+  if (!qso.lat_dec && qso.lat) {
+    const v = adifCoordToDecimal(qso.lat);
+    if (v != null) qso.lat_dec = v;
+  }
+  if (!qso.lon_dec && qso.lon) {
+    const v = adifCoordToDecimal(qso.lon);
+    if (v != null) qso.lon_dec = v;
+  }
+
+  // ha nincs decimális, de van grid → onnan lat/lon
+  if ((qso.lat_dec == null || qso.lon_dec == null) && qso.gridsquare) {
+    const pos = maidenheadToLatLon(qso.gridsquare);
+    if (pos) {
+      qso.lat_dec = pos.lat;
+      qso.lon_dec = pos.lon;
+    }
+  }
+
+  return qso;
+}
+
+// Két koordináta közötti távolság (km)
+function distanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) *
+            Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 // Statisztika számítás
 function computeStats(qsos) {
   const dxccCounts = {};
@@ -139,7 +242,8 @@ function computeStats(qsos) {
         countryByDxcc[dxcc] = qso.country;
       }
 
-      let cont = dxccToContinent(dxcc);
+      // elsődlegesen a cty.json-ből jövő continent mezőt használjuk
+      let cont = qso.continent || dxccToContinent(dxcc) || 'Ismeretlen';
       if (!cont) cont = 'Ismeretlen';
 
       continentCounts[cont] = (continentCounts[cont] || 0) + 1;
@@ -151,9 +255,12 @@ function computeStats(qsos) {
     const band = normalizeBand(qso);
     bandCounts[band] = (bandCounts[band] || 0) + 1;
 
-    const d = parseFloat(qso.distance);
-    if (!isNaN(d) && d > 0) {
-      if (d < minDistance) { minDistance = d; minQso = qso; }
+    // Távolság saját QTH-hoz, ha van myLat/myLon és QSO koordináta
+    if (myLat != null && myLon != null && qso.lat_dec != null && qso.lon_dec != null) {
+      const d = distanceKm(myLat, myLon, qso.lat_dec, qso.lon_dec);
+      qso.distance = d;
+
+      if (d > 0 && d < minDistance) { minDistance = d; minQso = qso; }
       if (d > maxDistance) { maxDistance = d; maxQso = qso; }
     }
   });
@@ -174,8 +281,8 @@ function computeStats(qsos) {
     continentCounts,
     modeCounts,
     bandCounts,
-    minDistance,
-    maxDistance,
+    minDistance: isFinite(minDistance) ? minDistance : 0,
+    maxDistance: isFinite(maxDistance) ? maxDistance : 0,
     minQso,
     maxQso
   };
@@ -219,14 +326,19 @@ dropZone.addEventListener('drop', e => {
   if (file) readFile(file);
 });
 
-function readFile(file) {
+// Fájl feldolgozása + CTY betöltés + saját QTH bekérés
+async function readFile(file) {
+  await loadCty();      // cty.json betöltése (cty.js)
+  await askUserQth();   // saját hívójel + grid bekérése
+
   const reader = new FileReader();
 
   reader.onload = e => {
     const text = e.target.result;
     statusEl.textContent = `Fájl beolvasva: ${file.name}, feldolgozás…`;
 
-    const qsos = parseAdif(text);
+    let qsos = parseAdif(text);
+    qsos = qsos.map(enhanceQso);
 
     // --- ADIF VALIDÁCIÓ ---
     if (qsos.length === 0) {
@@ -236,7 +348,7 @@ function readFile(file) {
         </span><br>
         Kérlek tölts fel egy .adi vagy .adif naplófájlt.
       `;
-      return; // fontos: ne fusson tovább
+      return;
     }
     // -----------------------
 
@@ -252,18 +364,17 @@ function readFile(file) {
   reader.readAsText(file);
 }
 
-
 // Statisztika kiírása
 function renderStats(stats) {
   totalQsoEl.textContent = stats.totalQso;
   totalDxccEl.textContent = stats.totalDxcc;
 
   if (stats.minQso)
-    minDistanceEl.textContent = `${stats.minDistance.toFixed(0)} km – ${stats.minQso.call} (${stats.minQso.country})`;
+    minDistanceEl.textContent = `${stats.minDistance.toFixed(0)} km – ${stats.minQso.call} (${stats.minQso.country || ''})`;
   else minDistanceEl.textContent = 'N/A';
 
   if (stats.maxQso)
-    maxDistanceEl.textContent = `${stats.maxDistance.toFixed(0)} km – ${stats.maxQso.call} (${stats.maxQso.country})`;
+    maxDistanceEl.textContent = `${stats.maxDistance.toFixed(0)} km – ${stats.maxQso.call} (${stats.maxQso.country || ''})`;
   else maxDistanceEl.textContent = 'N/A';
 
   dxccTableBody.innerHTML = '';
@@ -296,8 +407,14 @@ function renderContinentTable(stats) {
     continentTableBody.appendChild(tr);
   });
 
+  if (sorted.length === 0) {
+    continentSummaryEl.innerHTML = `
+      <p>Nincs elérhető kontinens statisztika.</p>
+    `;
+    return;
+  }
+
   const total = sorted.reduce((sum, [, c]) => sum + c, 0);
-  const unique = sorted.length;
   const top = sorted[0];
 
   continentSummaryEl.innerHTML = `
@@ -374,7 +491,7 @@ function renderCharts(stats) {
     options: { responsive: true, plugins: { legend: { display: false } } }
   });
 
-  // Mode chart (egységes oszlopdiagram)
+  // Mode chart
   if (modeChart) modeChart.destroy();
   modeChart = new Chart(document.getElementById('modeChart'), {
     type: 'bar',
@@ -388,7 +505,7 @@ function renderCharts(stats) {
     options: { responsive: true, plugins: { legend: { display: false } } }
   });
 
-  // Band chart (egységes oszlopdiagram)
+  // Band chart
   if (bandChart) bandChart.destroy();
   bandChart = new Chart(document.getElementById('bandChart'), {
     type: 'bar',
@@ -423,37 +540,23 @@ function renderMap(qsos) {
   });
 
   qsos.forEach(qso => {
-    let lat = null;
-    let lon = null;
+    let lat = qso.lat_dec;
+    let lon = qso.lon_dec;
 
-    if (qso.lat && qso.lon) {
-      lat = adifCoordToDecimal(qso.lat);
-      lon = adifCoordToDecimal(qso.lon);
-    }
-
-    if ((!lat || !lon) && qso.gridsquare) {
-      const pos = maidenheadToLatLon(qso.gridsquare);
-      if (pos) {
-        lat = pos.lat;
-        lon = pos.lon;
-      }
-    }
-
-    if (!lat || !lon) return;
+    if (lat == null || lon == null) return;
 
     const call = qso.call || '';
     const url = `https://www.qrz.com/db/${call}`;
 
     L.marker([lat, lon]).addTo(map)
-  .bindPopup(`
-    <a href="${url}" target="_blank">${call}</a><br>
-    ${qso.country || ''}<br>
-    ${qso.distance ? qso.distance + ' km' : ''}<br>
-    Grid: ${qso.gridsquare || 'N/A'}<br>
-    Date: ${qso.qso_date || 'N/A'}<br>
-    Mode: ${qso.mode || 'N/A'}<br>
-    Band: ${normalizeBand(qso)}
-  `);
-
+      .bindPopup(`
+        <a href="${url}" target="_blank">${call}</a><br>
+        ${qso.country || ''}<br>
+        ${qso.distance ? qso.distance.toFixed(0) + ' km' : ''}<br>
+        Grid: ${qso.gridsquare || 'N/A'}<br>
+        Date: ${qso.qso_date || 'N/A'}<br>
+        Mode: ${qso.mode || 'N/A'}<br>
+        Band: ${normalizeBand(qso)}
+      `);
   });
 }
