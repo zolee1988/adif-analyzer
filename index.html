@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <title>HG4ZKZ ADIF Log Analyzer</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Leaflet (térkép, opcionális) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+  <header>
+    <h1>ADIF Log Analyzer</h1>
+    <p>ADIF feltöltés után automatikus statisztika: DXCC, kontinensek, távolságok, módok, sávok.</p>
+  </header>
+
+  <main>
+    <section id="upload-section">
+      <h2>1. ADIF fájl betöltése</h2>
+      <input type="file" id="fileInput" accept=".adi,.adif,.txt">
+      <div id="dropZone">Húzd ide az ADIF fájlt</div>
+      <p id="status"></p>
+    </section>
+
+    <section id="summary-section">
+      <h2>2. Összefoglaló</h2>
+      <div class="summary-grid">
+        <div>
+          <h3>QSO összesen</h3>
+          <p id="totalQso">–</p>
+        </div>
+        <div>
+          <h3>DXCC entitások</h3>
+          <p id="totalDxcc">–</p>
+        </div>
+        <div>
+          <h3>Leghosszabb QSO</h3>
+          <p id="maxDistance">–</p>
+        </div>
+        <div>
+          <h3>Legrövidebb QSO</h3>
+          <p id="minDistance">–</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="dxcc-section">
+      <h2>3. Top 10 DXCC ország</h2>
+      <table id="dxccTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>DXCC</th>
+            <th>Ország</th>
+            <th>QSO</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <canvas id="dxccChart"></canvas>
+    </section>
+
+    <section id="continent-section">
+      <h2>4. Kontinens eloszlás</h2>
+      <canvas id="continentChart"></canvas>
+    </section>
+
+    <section id="mode-band-section">
+      <h2>5. Módok és sávok</h2>
+      <div class="chart-row">
+        <div>
+          <h3>Módok</h3>
+          <canvas id="modeChart"></canvas>
+        </div>
+        <div>
+          <h3>Sávok</h3>
+          <canvas id="bandChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section id="map-section">
+      <h2>6. Térkép (DX QSO-k)</h2>
+      <div id="map"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>HG4ZKZ ADIF Analyzer – kliensoldali, adatot nem tárol.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
