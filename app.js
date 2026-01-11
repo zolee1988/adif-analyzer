@@ -187,14 +187,13 @@ function enhanceQso(qso) {
   const info = lookupCallsign(qso.call || "");
 
   if (info) {
-    qso.country = info.country;
-    qso.dxcc = info.dxcc;
-    qso.continent = info.continent;
+    qso.country = info.Country;
+    qso.dxcc = info.ADIF;
+    qso.continent = info.Continent;
 
-    // CTY lat/lon → decimális
-    if (info.lat != null && info.lon != null) {
-      qso.lat_dec = info.lat;
-      qso.lon_dec = info.lon;
+    if (info.Latitude != null && info.Longitude != null) {
+      qso.lat_dec = info.Latitude;
+      qso.lon_dec = info.Longitude;
     }
   }
 
@@ -550,8 +549,7 @@ function renderMap(qsos) {
   qsos.forEach(qso => {
     const lat = qso.lat_dec;
     const lon = qso.lon_dec;
-    if (qso.lon_dec < 0) qso.lon_dec = -qso.lon_dec;
-
+    
     // Ha nincs koordináta → nem rajzolunk markert
     if (typeof lat !== "number" || typeof lon !== "number") {
       console.warn("Hiányzó koordináta:", qso.call, lat, lon);
