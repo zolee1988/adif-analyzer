@@ -1,3 +1,4 @@
+/* Alap stílusok */
 body {
   font-family: system-ui, sans-serif;
   margin: 0;
@@ -33,6 +34,7 @@ h2 {
   margin-top: 0;
 }
 
+/* Feltöltés */
 #upload-section input[type="file"] {
   margin-bottom: 1rem;
 }
@@ -56,6 +58,7 @@ h2 {
   color: #c5ceff;
 }
 
+/* Összefoglaló */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -69,34 +72,38 @@ h2 {
   border: 1px solid #293559;
 }
 
-summary-grid h3 {
+.summary-grid h3 {
   margin: 0 0 0.25rem;
 }
 
-#dxccTable {
+/* Táblázatok – egységes stílus */
+#dxccTable,
+#continentTable,
+#modeTable,
+#bandTable {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 1rem;
   font-size: 0.9rem;
 }
 
-#dxccTable th,
-#dxccTable td {
+#dxccTable th, #dxccTable td,
+#continentTable th, #continentTable td,
+#modeTable th, #modeTable td,
+#bandTable th, #bandTable td {
   border-bottom: 1px solid #27325a;
   padding: 0.4rem 0.5rem;
 }
 
-#dxccTable th {
+#dxccTable th,
+#continentTable th,
+#modeTable th,
+#bandTable th {
   text-align: left;
   background: #1b2238;
 }
 
-.chart-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1rem;
-}
-
+/* Térkép */
 #map {
   width: 100%;
   height: 400px;
@@ -104,28 +111,10 @@ summary-grid h3 {
   border: 1px solid #27325a;
 }
 
+/* Lábléc */
 footer {
   text-align: center;
   padding: 1rem;
   font-size: 0.8rem;
   color: #9ca7d9;
 }
-
-#continentTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-
-#continentTable th,
-#continentTable td {
-  border-bottom: 1px solid #27325a;
-  padding: 0.4rem 0.5rem;
-}
-
-#continentTable th {
-  text-align: left;
-  background: #1b2238;
-}
-
