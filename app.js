@@ -64,15 +64,14 @@ function adifCoordToDecimal(str) {
   return val;
 }
 
-// Rövid band normalizálás
+// Rövid band normalizálás (IARU R1)
 function normalizeBand(qso) {
-  // Ha az ADIF-ben eleve van BAND mező, azt használjuk
   if (qso.band) return qso.band.toLowerCase();
   if (!qso.freq) return 'unk';
 
-  const f = parseFloat(qso.freq); // MHz-ben értelmezve
+  const f = parseFloat(qso.freq);
 
-  // HF (IARU Region 1)
+  // HF
   if (f >= 0.1357 && f <= 0.1378) return '2200m';
   if (f >= 0.472 && f <= 0.479) return '630m';
   if (f >= 1.810 && f <= 2.000) return '160m';
@@ -98,12 +97,12 @@ function normalizeBand(qso) {
   // SHF
   if (f >= 2300 && f <= 2450) return '13cm';
   if (f >= 3400 && f <= 3475) return '9cm';
-  if (f >= 5650 && f <= 5925) return '6cm'; // korrigált, valós tartomány
+  if (f >= 5650 && f <= 5925) return '6cm';
 
   // 3 cm
   if (f >= 10000 && f <= 10500) return '3cm';
 
-  // µW (microwave)
+  // µW
   if (f >= 24000 && f <= 24250) return '1.2cm';
   if (f >= 47000 && f <= 47200) return '6mm';
   if (f >= 75500 && f <= 81500) return '4mm';
@@ -114,7 +113,6 @@ function normalizeBand(qso) {
   return 'unk';
 }
 
-
 function normalizeMode(qso) {
   return (qso.mode || 'UNK').toUpperCase();
 }
@@ -123,7 +121,7 @@ function normalizeMode(qso) {
 function computeStats(qsos) {
   const dxccCounts = {};
   const countryByDxcc = {};
-  const continentCounts = Object.create(null);
+  const continentCounts = {};
   const modeCounts = {};
   const bandCounts = {};
   let minDistance = Infinity;
@@ -142,7 +140,7 @@ function computeStats(qsos) {
       }
 
       let cont = dxccToContinent(dxcc);
-      if (!cont || cont === 'undefined') cont = 'Ismeretlen';
+      if (!cont) cont = 'Ismeretlen';
 
       continentCounts[cont] = (continentCounts[cont] || 0) + 1;
     }
@@ -159,13 +157,6 @@ function computeStats(qsos) {
       if (d > maxDistance) { maxDistance = d; maxQso = qso; }
     }
   });
-
-  // <<< minden üres / whitespace kulcs törlése
-  for (const key in continentCounts) {
-    if (!key || key.trim() === "") {
-      delete continentCounts[key];
-    }
-  }
 
   const dxccTop = Object.entries(dxccCounts)
     .sort((a, b) => b[1] - a[1])
@@ -298,8 +289,48 @@ function renderContinentTable(stats) {
   `;
 }
 
+// Módok táblázat
+function renderModeTable(stats) {
+  const tbody = document.querySelector('#modeTable tbody');
+  tbody.innerHTML = '';
+
+  const sorted = Object.entries(stats.modeCounts)
+    .sort((a, b) => b[1] - a[1]);
+
+  sorted.forEach(([mode, count], idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${idx + 1}</td>
+      <td>${mode}</td>
+      <td>${count}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Sávok táblázat
+function renderBandTable(stats) {
+  const tbody = document.querySelector('#bandTable tbody');
+  tbody.innerHTML = '';
+
+  const sorted = Object.entries(stats.bandCounts)
+    .sort((a, b) => b[1] - a[1]);
+
+  sorted.forEach(([band, count], idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${idx + 1}</td>
+      <td>${band}</td>
+      <td>${count}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 // Chartok
 function renderCharts(stats) {
+
+  // DXCC chart
   const dxccLabels = stats.dxccTop.map(d => `${d.dxcc} (${d.country})`);
   const dxccData = stats.dxccTop.map(d => d.count);
 
@@ -314,46 +345,50 @@ function renderCharts(stats) {
   });
 
   // Continent chart
-  let contLabels = Object.keys(stats.continentCounts).filter(k => k && k.trim() !== "");
-  let contData = contLabels.map(k => stats.continentCounts[k]);
+  const contLabels = Object.keys(stats.continentCounts);
+  const contData = contLabels.map(k => stats.continentCounts[k]);
 
   if (continentChart) continentChart.destroy();
   continentChart = new Chart(document.getElementById('continentChart'), {
     type: 'bar',
     data: {
       labels: contLabels,
+      datasets: [{ data: contData, backgroundColor: '#4f6bff' }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } } }
+  });
+
+  // Mode chart (új, egységes)
+  if (modeChart) modeChart.destroy();
+  modeChart = new Chart(document.getElementById('modeChart'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(stats.modeCounts),
       datasets: [{
-        data: contData,
+        data: Object.values(stats.modeCounts),
         backgroundColor: '#4f6bff'
       }]
     },
     options: { responsive: true, plugins: { legend: { display: false } } }
   });
 
-  const modeLabels = Object.keys(stats.modeCounts);
-  const modeData = Object.values(stats.modeCounts);
-
-  if (modeChart) modeChart.destroy();
-  modeChart = new Chart(document.getElementById('modeChart'), {
-    type: 'doughnut',
-    data: {
-      labels: modeLabels,
-      datasets: [{ data: modeData, backgroundColor: ['#4f6bff','#ff7b7b','#ffd15c','#6be39e','#b57bff','#ff9ad5'] }]
-    }
-  });
-
-  const bandLabels = Object.keys(stats.bandCounts);
-  const bandData = Object.values(stats.bandCounts);
-
+  // Band chart (egységes)
   if (bandChart) bandChart.destroy();
   bandChart = new Chart(document.getElementById('bandChart'), {
     type: 'bar',
     data: {
-      labels: bandLabels,
-      datasets: [{ data: bandData, backgroundColor: '#4f6bff' }]
+      labels: Object.keys(stats.bandCounts),
+      datasets: [{
+        data: Object.values(stats.bandCounts),
+        backgroundColor: '#4f6bff'
+      }]
     },
     options: { responsive: true, plugins: { legend: { display: false } } }
   });
+
+  // ÚJ táblázatok
+  renderModeTable(stats);
+  renderBandTable(stats);
 }
 
 // Térkép renderelés
@@ -394,6 +429,4 @@ function renderMap(qsos) {
     const url = `https://www.qrz.com/db/${call}`;
 
     L.marker([lat, lon]).addTo(map)
-      .bindPopup(`<a href="${url}" target="_blank">${call}</a><br>${qso.country || ''}<br>${qso.distance ? qso.distance + ' km' : ''}`);
-  });
-}
+      .bindPopup(`<a href="${url}" target="_blank">${call}</a
