@@ -186,40 +186,36 @@ function loadUserQth() {
 function enhanceQso(qso) {
   const info = lookupCallsign(qso.call || "");
 
+  // 1) DXCC alapadatok
   if (info) {
     if (!qso.country) qso.country = info.country;
     if (!qso.dxcc) qso.dxcc = info.dxcc;
     if (!qso.continent) qso.continent = info.continent;
-
-    // lat/lon a cty.json-ből
-    if (!qso.lat_dec && !qso.lon_dec && info.lat != null && info.lon != null) {
-      qso.lat_dec = info.lat;
-      qso.lon_dec = info.lon;
-    }
-
-    // ha nincs grid, de van lat/lon → számolunk
-    if (!qso.gridsquare && qso.lat_dec != null && qso.lon_dec != null) {
-      qso.gridsquare = latLonToMaidenhead(qso.lat_dec, qso.lon_dec);
-    }
   }
 
-  // ADIF LAT/LON → decimális
-  if (!qso.lat_dec && qso.lat) {
+  // 2) ADIF LAT/LON → decimális
+  if (qso.lat && !qso.lat_dec) {
     const v = adifCoordToDecimal(qso.lat);
     if (v != null) qso.lat_dec = v;
   }
-  if (!qso.lon_dec && qso.lon) {
+  if (qso.lon && !qso.lon_dec) {
     const v = adifCoordToDecimal(qso.lon);
     if (v != null) qso.lon_dec = v;
   }
 
-  // ha nincs decimális, de van grid → gridből számolunk
-  if ((qso.lat_dec == null || qso.lon_dec == null) && qso.gridsquare) {
+  // 3) Grid → decimális
+  if ((!qso.lat_dec || !qso.lon_dec) && qso.gridsquare) {
     const pos = maidenheadToLatLon(qso.gridsquare);
     if (pos) {
       qso.lat_dec = pos.lat;
       qso.lon_dec = pos.lon;
     }
+  }
+
+  // 4) CTY fallback → decimális
+  if ((!qso.lat_dec || !qso.lon_dec) && info && info.lat != null && info.lon != null) {
+    qso.lat_dec = info.lat;
+    qso.lon_dec = info.lon;
   }
 
   return qso;
