@@ -221,19 +221,37 @@ dropZone.addEventListener('drop', e => {
 
 function readFile(file) {
   const reader = new FileReader();
+
   reader.onload = e => {
     const text = e.target.result;
     statusEl.textContent = `Fájl beolvasva: ${file.name}, feldolgozás…`;
+
     const qsos = parseAdif(text);
+
+    // --- ADIF VALIDÁCIÓ ---
+    if (qsos.length === 0) {
+      statusEl.innerHTML = `
+        <span style="color:red; font-weight:bold;">
+          A fájl nem tűnik érvényes ADIF formátumnak.
+        </span><br>
+        Kérlek tölts fel egy .adi vagy .adif naplófájlt.
+      `;
+      return; // fontos: ne fusson tovább
+    }
+    // -----------------------
+
     const stats = computeStats(qsos);
     renderStats(stats);
     renderContinentTable(stats);
     renderCharts(stats);
     renderMap(qsos);
+
     statusEl.textContent = `Kész: ${stats.totalQso} QSO feldolgozva.`;
   };
+
   reader.readAsText(file);
 }
+
 
 // Statisztika kiírása
 function renderStats(stats) {
