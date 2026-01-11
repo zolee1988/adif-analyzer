@@ -29,18 +29,43 @@ function maidenheadToLatLon(grid) {
   grid = grid.toUpperCase();
   const A = 'A'.charCodeAt(0);
 
-  const lon = (grid.charCodeAt(0) - A) * 20 - 180 +
-              (grid.charCodeAt(2) - 48) * 2 +
-              (grid.length >= 6 ? (grid.charCodeAt(4) - A) / 12 : 0) +
-              (grid.length >= 8 ? (grid.charCodeAt(6) - 48) / 120 : 0);
+  let lon = (grid.charCodeAt(0) - A) * 20 - 180;
+  let lat = (grid.charCodeAt(1) - A) * 10 - 90;
 
-  const lat = (grid.charCodeAt(1) - A) * 10 - 90 +
-              (grid.charCodeAt(3) - 48) * 1 +
-              (grid.length >= 6 ? (grid.charCodeAt(5) - A) / 24 : 0) +
-              (grid.length >= 8 ? (grid.charCodeAt(7) - 48) / 240 : 0);
+  lon += parseInt(grid[2]) * 2;
+  lat += parseInt(grid[3]) * 1;
+
+  if (grid.length >= 6) {
+    lon += (grid.charCodeAt(4) - A) / 12;
+    lat += (grid.charCodeAt(5) - A) / 24;
+  }
+
+  if (grid.length >= 8) {
+    lon += parseInt(grid[6]) / 120;
+    lat += parseInt(grid[7]) / 240;
+  }
+
+  // KÖZÉPPONT hozzáadása
+  // (fél cella minden szinten)
+  let cellLon = 2;
+  let cellLat = 1;
+
+  if (grid.length >= 6) {
+    cellLon = 1 / 12;
+    cellLat = 1 / 24;
+  }
+
+  if (grid.length >= 8) {
+    cellLon = 1 / 120;
+    cellLat = 1 / 240;
+  }
+
+  lon += cellLon / 2;
+  lat += cellLat / 2;
 
   return { lat, lon };
 }
+
 
 function latLonToMaidenhead(lat, lon) {
   lon += 180;
