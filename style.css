@@ -1,4 +1,5 @@
-/* Alap stílusok */
+/* ===== Alap stílus ===== */
+
 body {
   font-family: system-ui, sans-serif;
   margin: 0;
@@ -12,29 +13,62 @@ header {
   border-bottom: 1px solid #303b5f;
 }
 
-header h1 {
-  margin: 0 0 0.5rem;
-}
-
 main {
   padding: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
 }
 
+h1, h2, h3 {
+  margin-top: 0;
+}
+
+/* ===== Egységes section stílus ===== */
+
 section {
   margin-bottom: 2rem;
+  padding: 1.2rem 1.5rem;
   background: #151b30;
-  padding: 1rem 1.5rem;
   border-radius: 8px;
   border: 1px solid #27325a;
 }
 
-h2 {
-  margin-top: 0;
+/* ===== QTH mezők ===== */
+
+.qth-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
-/* Feltöltés */
+.qth-grid input {
+  width: 180px;
+  padding: 8px 10px;
+  font-size: 1em;
+  border-radius: 6px;
+  border: 1px solid #303b5f;
+  background: #0f1628;
+  color: #f7f7ff;
+}
+
+.qth-grid input::placeholder {
+  color: #8fa0d6;
+}
+
+.qth-grid input:focus {
+  outline: none;
+  border-color: #4f6bff;
+  background: #131b33;
+}
+
+.qth-hint {
+  font-size: 0.9em;
+  color: #c5ceff;
+  margin-top: 8px;
+}
+
+/* ===== Feltöltés ===== */
+
 #upload-section input[type="file"] {
   margin-bottom: 1rem;
 }
@@ -58,7 +92,8 @@ h2 {
   color: #c5ceff;
 }
 
-/* Összefoglaló */
+/* ===== Összefoglaló grid ===== */
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -72,38 +107,27 @@ h2 {
   border: 1px solid #293559;
 }
 
-.summary-grid h3 {
-  margin: 0 0 0.25rem;
-}
+/* ===== Táblázatok ===== */
 
-/* Táblázatok – egységes stílus */
-#dxccTable,
-#continentTable,
-#modeTable,
-#bandTable {
+table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 1rem;
   font-size: 0.9rem;
 }
 
-#dxccTable th, #dxccTable td,
-#continentTable th, #continentTable td,
-#modeTable th, #modeTable td,
-#bandTable th, #bandTable td {
+th, td {
   border-bottom: 1px solid #27325a;
   padding: 0.4rem 0.5rem;
 }
 
-#dxccTable th,
-#continentTable th,
-#modeTable th,
-#bandTable th {
+th {
   text-align: left;
   background: #1b2238;
 }
 
-/* Térkép */
+/* ===== Térkép ===== */
+
 #map {
   width: 100%;
   height: 400px;
@@ -111,37 +135,11 @@ h2 {
   border: 1px solid #27325a;
 }
 
-/* Lábléc */
+/* ===== Lábléc ===== */
+
 footer {
   text-align: center;
   padding: 1rem;
   font-size: 0.8rem;
   color: #9ca7d9;
 }
-
-#qth-section {
-  margin-bottom: 25px;
-  padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: #fafafa;
-}
-
-.qth-grid {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.qth-grid input {
-  width: 180px;
-  padding: 6px;
-  font-size: 1em;
-}
-
-.qth-hint {
-  font-size: 0.9em;
-  color: #555;
-  margin-top: 8px;
-}
-
