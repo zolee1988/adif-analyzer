@@ -9,6 +9,38 @@ const CONTINENT_NAMES = {
 };
 
 
+function extractPrefix(call) {
+  if (!call) return null;
+
+  call = call.toUpperCase().trim();
+
+  // 1) Ha van perjel → a perjel utáni rész lehet al-prefix (pl. 3D2/R, FO/A, KH8/S)
+  if (call.includes("/")) {
+    const parts = call.split("/");
+    // A hosszabb rész általában a prefix (pl. 3D2/R → 3D2)
+    const main = parts[0];
+    const suffix = parts[1];
+
+    // Ha a suffix is prefix-szerű (pl. /A, /M, /P nem az)
+    if (/^[A-Z0-9]+$/.test(suffix) && suffix.length > 1) {
+      return main + "/" + suffix;   // pl. FO/A, 3D2/R
+    }
+
+    return main; // pl. HA5XYZ/P → HA5XYZ → HA
+  }
+
+  // 2) Normál prefixek (betű+szám kombinációk)
+  // Példák: HA5XYZ → HA, DL3ABC → DL, UA3XYZ → UA3, UA0ABC → UA0
+  const match = call.match(/^([A-Z]{1,2}[0-9]{1,3})/);
+  if (match) {
+    return match[1];
+  }
+
+  return null;
+}
+
+
+
 // =========================
 // 1. ADIF PARSER
 // =========================
