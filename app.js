@@ -214,7 +214,16 @@ function enhanceQso(qso) {
     }
   }
 
-  // 3) Ha nincs GRID → használjuk a valós ország-középpontot
+  // 3) Prefix-alapú centroid (DXCC-szintű fallback)
+  const prefix = extractPrefix(qso.call);
+  if (prefix && PREFIX_CENTROIDS[prefix]) {
+    const c = PREFIX_CENTROIDS[prefix];
+    qso.lat_dec = c.lat;
+    qso.lon_dec = c.lon;
+    return qso;
+  }
+
+  // 4) Ország-alapú centroid (másodlagos fallback)
   if (qso.country && COUNTRY_CENTROIDS[qso.country]) {
     const c = COUNTRY_CENTROIDS[qso.country];
     qso.lat_dec = c.lat;
@@ -222,10 +231,9 @@ function enhanceQso(qso) {
     return qso;
   }
 
-  // 4) Ha semmi nincs → nincs koordináta
+  // 5) Ha semmi nincs → nincs koordináta
   qso.lat_dec = null;
   qso.lon_dec = null;
-
   return qso;
 }
 
