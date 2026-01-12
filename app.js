@@ -186,19 +186,38 @@ function loadUserQth() {
 function enhanceQso(qso) {
   const info = lookupCallsign(qso.call || "");
 
+  // 1) Ország + DXCC + kontinens
   if (info) {
     qso.country = info.Country;
     qso.dxcc = info.ADIF;
     qso.continent = info.Continent;
+  }
 
-    if (info.Latitude != null && info.Longitude != null) {
-      qso.lat_dec = info.Longitude;
-qso.lon_dec = info.Latitude;
+  // 2) Ha van GRID → ez a legpontosabb
+  if (qso.gridsquare) {
+    const pos = maidenheadToLatLon(qso.gridsquare);
+    if (pos) {
+      qso.lat_dec = pos.lat;
+      qso.lon_dec = pos.lon;
+      return qso;
     }
   }
 
+  // 3) Ha nincs GRID → használjuk a valós ország-középpontot
+  if (qso.country && COUNTRY_CENTROIDS[qso.country]) {
+    const c = COUNTRY_CENTROIDS[qso.country];
+    qso.lat_dec = c.lat;
+    qso.lon_dec = c.lon;
+    return qso;
+  }
+
+  // 4) Ha semmi nincs → nincs koordináta
+  qso.lat_dec = null;
+  qso.lon_dec = null;
+
   return qso;
 }
+
 
 // =========================
 // 6. TÁVOLSÁG SZÁMÍTÁS
