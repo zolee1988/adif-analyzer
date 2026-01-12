@@ -14,20 +14,20 @@ function lookupCallsign(call) {
 
   call = call.toUpperCase();
 
-  // Prefix matching: hosszútól rövidig
   for (let i = call.length; i > 0; i--) {
     const prefix = call.substring(0, i);
     if (CTY[prefix]) {
       const e = CTY[prefix];
       return {
-        country: e.Country,
-        dxcc: e.ADIF,
-        continent: e.Continent,
-        lat: e.Latitude,
-        lon: e.Longitude
+        Country: e.Country,
+        ADIF: e.ADIF,
+        Continent: e.Continent,
+        Latitude: e.Latitude,
+        Longitude: e.Longitude
       };
     }
   }
 
   return null;
 }
+
