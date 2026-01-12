@@ -1,3 +1,14 @@
+const CONTINENT_NAMES = {
+  "EU": "Európa",
+  "AS": "Ázsia",
+  "AF": "Afrika",
+  "OC": "Óceánia",
+  "SA": "Dél-Amerika",
+  "NA": "Észak-Amerika",
+  "AN": "Antarktisz"
+};
+
+
 // =========================
 // 1. ADIF PARSER
 // =========================
@@ -261,8 +272,10 @@ function computeStats(qsos) {
       }
 
       // elsődlegesen a cty.json kontinens mezője
-      let cont = qso.continent || dxccToContinent(dxcc) || 'Ismeretlen';
+      let contCode = qso.continent || dxccToContinent(dxcc) || 'Ismeretlen';
+      let cont = CONTINENT_NAMES[contCode] || contCode;
       continentCounts[cont] = (continentCounts[cont] || 0) + 1;
+
     }
 
     // mód
