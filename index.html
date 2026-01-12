@@ -12,9 +12,10 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "221e8b25f29642cd926f4b493859fda5"}'></script><!-- End Cloudflare Web Analytics -->
-
-  
+  <!-- Cloudflare Web Analytics -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon='{"token": "221e8b25f29642cd926f4b493859fda5"}'>
+  </script>
 </head>
 
 <body>
@@ -22,35 +23,37 @@
     <h1>ADIF Log Analyzer</h1>
     <p>ADIF feltöltés után automatikus statisztika: DXCC, kontinensek, távolságok, módok, sávok.</p>
     <p>Tetszik a munkám? Támogass PayPal-on:</p>
-    <p><a href="https://www.paypal.me/zolikakiss" target="_blank"><img src="https://img.shields.io/badge/PayPal-Donate-blue.svg" alt="Donate with PayPal button"></a></p>
+    <p>
+      <a href="https://www.paypal.me/zolikakiss" target="_blank">
+        <img src="https://img.shields.io/badge/PayPal-Donate-blue.svg" alt="Donate with PayPal button">
+      </a>
+    </p>
   </header>
 
   <main>
 
-    <!-- 1. Feltöltés -->
+    <!-- 0. Saját adatok -->
+    <section id="qth-section">
+      <h2>0. Saját adatok</h2>
 
-<!-- Saját QTH megadása -->
-<section id="qth-section">
-  <h2>0. Saját adatok</h2>
+      <div class="qth-grid">
+        <div>
+          <label for="myCall"><strong>Saját hívójel:</strong></label>
+          <input type="text" id="myCall" placeholder="pl. HG4ZKZ">
+        </div>
 
-  <div class="qth-grid">
-    <div>
-      <label for="myCall"><strong>Saját hívójel:</strong></label>
-      <input type="text" id="myCall" placeholder="pl. HG4ZKZ">
-    </div>
+        <div>
+          <label for="myGrid"><strong>Saját lokátor:</strong></label>
+          <input type="text" id="myGrid" placeholder="pl. JN97eh">
+        </div>
+      </div>
 
-    <div>
-      <label for="myGrid"><strong>Saját lokátor:</strong></label>
-      <input type="text" id="myGrid" placeholder="pl. JN97eh">
-    </div>
-  </div>
+      <p class="qth-hint">
+        Ezek alapján számoljuk a távolságokat és a térképes pozíciókat.
+      </p>
+    </section>
 
-  <p class="qth-hint">
-    Ezek alapján számoljuk a távolságokat és a térképes pozíciókat.
-  </p>
-</section>
-
-    
+    <!-- 1. ADIF fájl betöltése -->
     <section id="upload-section">
       <h2>1. ADIF fájl betöltése</h2>
       <input type="file" id="fileInput" accept=".adi,.adif,.txt">
@@ -158,9 +161,9 @@
     </section>
 
   </main>
-  
-<script src="cty.js"></script>
-<script src="app.js"></script>
-  
+
+  <script src="cty.js"></script>
+  <script src="app.js"></script>
+
 </body>
 </html>
